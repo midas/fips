@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+run_coverage_for_current_app() {
+  if [ -f coveralls.json ]; then
+    echo ""
+    step "Test Coverage"
+    if [ "$#" -ne 1 ]; then
+      MIX_ENV=$env mix coveralls.html $coveralls_args
+    else
+      MIX_ENV=$env iex -S mix coveralls.html $coveralls_args
+    fi
+  fi
+}
+
+# Pass anything to trigger iex support
+run_tests_for_current_app() {
+  use_iex=$1
+  use_iex=${use_iex:-false}
+
+  if [ -f test/test_helper.exs ]; then
+    echo ""
+    #step "Tests"
+    if $use_iex; then
+      MIX_ENV=$env iex -S mix test $exunit_args
+    else
+      MIX_ENV=$env mix test $exunit_args
+    fi
+  fi
+}

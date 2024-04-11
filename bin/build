@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+
+current_dir="$(dirname "$0")"
+source $current_dir/shared/all
+
+die_on_sigint
+
+os=${OSTYPE//[0-9.]/}
+
+case $os in
+  darwin*)
+    #sudo ls > /dev/null
+    docker_cmd="docker"
+    ;;
+  *)
+    docker_cmd="docker"
+    ;;
+esac
+
+USAGE="$0 [--release=RELEASE] [--version=VERSION] [--no-push] [--no-push-app] [--no-push-bin] [--no-push-compose] [--no-push-env]
+
+Options:
+
+env               - The environment the build is for (staging, sandbox, prod)
+no-push           - When specified, do not push the docker image/tags to the repo
+only-push-app     - When specified, do not build and only push the release artifact
+only-push-bin     - When specified, do not build and only push the bin scripts
+only-push-compose - When specified, do not build and only push the compose spec
+only-push-env     - When specified, do not build and only push the .env files
+release           - The name of the app being built/released
+version           - The version of the app being built/released
+"
+
+build=true
+progress=auto # helps to add --no-cache in addition when using --progress=plain
+push_app=true
+push_bin=true
+push_compose=true
+push_env=true
+
+for i in "$@"
+do
+  case $i in
+    --env=*)
+      env="${i#*=}"
+      shift
+      ;;
+    --no-push)
+        push_app=false
+        push_bin=false
+        push_compose=false
+        push_env=false
+        ;;
+    --only-push-app)
+        build=false
+        push_app=true
+        push_bin=false
+        push_compose=false
+        push_env=false
+        ;;
+    --only-push-bin)
+        build=false
+        push_app=false
+        push_bin=true
+        push_compose=false
+        push_env=false
+        ;;
+    --only-push-compose)
+        build=false
+        push_app=false
+        push_bin=false
+        push_compose=true
+        push_env=false
+        ;;
+    --only-push-env)
+        build=false
+        push_app=false
+        push_bin=false
+        push_compose=false
+        push_env=true
+        ;;
+    --progress=*)
+        progress="${i#*=}"
+        shift
+        ;;
+    --release=*)
+        release_name="${i#*=}"
+        shift
+        ;;
+    --version=*)
+        version="${i#*=}"
+        shift
+        ;;
+    --help|-h)
+        echo ""
+        echo "Build and push docker image for Ark releases"
+        print_usage "$USAGE"
+        exit
+        ;;
+  esac
+done
+
+ensure_param "env" $env
+ensure_param "release" $release_name
+ensure_param "version" $version
+
+namespace=iberonllc
+
+#if [ "$env" = "sandbox" ]; then
+  #full_release_name="$release_name-sandbox"
+#else
+  full_release_name="$release_name"
+#fi
+
+docker_build_cmd="$docker_cmd build . -t $namespace/$full_release_name:$version --build-arg rel_name=$release_name --build-arg env=$env --progress=$progress"
+docker_tag_cmd="$docker_cmd tag $namespace/$full_release_name:$version $namespace/$full_release_name:latest"
+
+#echo "DOCKER BUILD CMD: $docker_build_cmd"
+#echo "DOCKER TAG CMD: $docker_tag_cmd"
+
+
+if $build;
+then
+  announce "Building release $full_release_name:$version"                          #&& \
+  eval "$docker_build_cmd" || die "Failed while executing docker build" $?
+  #announce "Tagging release"
+  #eval "$docker_tag_cmd" || die "Failed while tagging docker latest" $?
+else
+  warn "Will not build $namespace/$full_release_name"
+fi
+
+#if $push_app;
+#then
+  #announce "Pushing release $version"                                          && \
+  #$docker_cmd push $namespace/$full_release_name:$version                      && \
+  #announce "Pushing release latest"                                            && \
+  #$docker_cmd push $namespace/$full_release_name:latest
+#else
+  #warn "Will not push $namespace/$full_release_name"
+#fi

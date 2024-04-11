@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+function make_db_connection_uri() {
+  db_protocol=$1
+  user_name=$2
+  user_password=$3
+  hostname=$4
+  port=$5
+  db_name=$6
+  require_ssl=$7
+
+  ssl_part=$([ "$require_ssl" = true ] && echo "?sslmode=require" || echo "")
+
+  echo "$db_protocol://$user_name:$user_password@$hostname:$port/$db_name$ssl_part"
+}
+
+# Fetches the PROD DB JSON from DO CLI
+
+# ## Examples
+#
+#   db_json=$(get_prod_db_entry_json)
+#   echo "$db_json"
+#
+function get_prod_db_entry_json() {
+  json=`doctl dbs list --output json`
+  json_min=`echo "$json" | jsmin`
+
+  # Find the DB entry that is `prod`
+  db_json="$(echo "$json_min" | jq ".[] | select(.tags | index(\"prod\"))")"
+  echo "$db_json"
+}
+
+function get_prod_db_info() {
+  current_db_name=$1
+
+  db_json=$(get_prod_db_entry_json)
+
+  # Get the DB Info
+  db_uuid="$(echo "$db_json" | jq -r ".id")"
+  db_cluster_name="$(echo "$db_json" | jq -r ".name")"
+  hostname="$(echo "$db_json" | jq -r ".connection.host")"
+  do_admin_user_name="$(echo "$db_json" | jq -r ".connection.user")"
+  do_admin_user_password="$(echo "$db_json" | jq -r ".connection.password")"
+  db_port="$(echo "$db_json" | jq -r ".connection.port")"
+  db_protocol="$(echo "$db_json" | jq -r ".connection.protocol")"
+  db_require_ssl="$(echo "$db_json" | jq -r ".connection.ssl")"
+
+  db_uri_for_admin_default_db="$(make_db_connection_uri "$db_protocol" "$do_admin_user_name" "$do_admin_user_password" "$hostname" "$db_port" "defaultdb" "$db_require_ssl")"
+  db_uri_for_admin_current_db="$(make_db_connection_uri "$db_protocol" "$do_admin_user_name" "$do_admin_user_password" "$hostname" "$db_port" "$current_db_name" "$db_require_ssl")"
+  #echo "DB URI: $db_uri"
+
+  #echo ""
+  #echo "DB Host Name: $hostname"
+  #echo "DB Cluster Name: $db_cluster_name"
+  #echo "DO Admin User Name: $do_admin_user_name"
+  #echo "DO Admin Password: $do_admin_user_password"
+  #echo "DO Port: $db_port"
+  #echo "DO Protocol: $db_protocol"
+  #echo "DB Require SSL: $db_require_ssl"
+
+  local db_info=()
+  db_info[0]=$db_uuid
+  db_info[1]=$hostname
+  db_info[2]=$db_cluster_name
+  db_info[3]=$do_admin_user_name
+  db_info[4]=$do_admin_user_password
+  db_info[5]=$db_port
+  db_info[6]=$db_protocol
+  db_info[7]=$db_require_ssl
+  db_info[8]=$db_uri_for_admin_default_db
+  db_info[9]=$db_uri_for_admin_current_db
+  #printf '%q\n' "${db_info[@]}"
+
+  echo "${db_info[@]}"
+}
