@@ -1,6 +1,6 @@
 # Build ##################################################################################
 
-FROM elixir:1.14.5-otp-25-alpine AS build
+FROM elixir:1.14.5-otp-24-alpine AS build
 ARG env
 ARG rel_name
 RUN apk add --no-cache --update build-base git npm
@@ -30,7 +30,7 @@ RUN mix release $rel_name
 
 # Release artifact #######################################################################
 
-FROM alpine:3.18 AS app
+FROM alpine:3.17 AS app
 ARG env
 ARG rel_name
 RUN echo $rel_name
