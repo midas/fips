@@ -1,21 +1,8 @@
 # Fips
 
-**TODO: Add description**
+This repo is the simplest Elixir application that can display the OpenSSL failures in Erlang >= 23.
 
-## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `fips` to your list of dependencies in `mix.exs`:
+## Erlang Base Image Recipes
 
-```elixir
-def deps do
-  [
-    {:fips, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/fips](https://hexdocs.pm/fips).
-
+https://github.com/erlang/docker-erlang-otp/blob/7251e9a4b2ec0fee20baea796a9e6386a7987d05/26/alpine/Dockerfile
