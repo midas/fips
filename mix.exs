@@ -24,7 +24,9 @@ defmodule Fips.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:hackney, "~> 1.20"},
       {:httpoison, "~> 2.1"},
+      {:tesla, "~> 1.9"},
     ]
   end
 
