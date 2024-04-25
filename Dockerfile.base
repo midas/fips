@@ -1,4 +1,4 @@
-FROM alpine
+FROM elixir:1.14.5-otp-26-alpine
 
 RUN apk --no-cache add wget gzip tar gcc libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev \
 && wget https://www.openssl.org/source/openssl-3.0.9.tar.gz \
