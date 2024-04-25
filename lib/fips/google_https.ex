@@ -1,4 +1,4 @@
-defmodule Fips.Google do
+defmodule Fips.GoogleHttps do
 
   use Tesla
 

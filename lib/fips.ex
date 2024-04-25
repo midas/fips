@@ -10,8 +10,12 @@ defmodule Fips do
     HTTPoison.get!("https://postman-echo.com/get")
   end
 
+  def http_google do
+    Fips.GoogleHttp.root()
+  end
+
   def https_google do
-    Fips.Google.root()
+    Fips.GoogleHttps.root()
   end
 
 end
